@@ -19,6 +19,7 @@ import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.HyphenatedWordsFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
+import org.apache.lucene.analysis.miscellaneous.TrimFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
@@ -82,6 +83,7 @@ public class HWII {
 				.addTokenFilter(WordDelimiterGraphFilterFactory.class)
 				.addTokenFilter(LowerCaseFilterFactory.class)
 				.addTokenFilter(EnglishMinimalStemFilterFactory.class)
+				.addTokenFilter(TrimFilterFactory.class)
 				.build();
 		Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
 		perFieldAnalyzers.put("contenuto", myAnalyzer);
