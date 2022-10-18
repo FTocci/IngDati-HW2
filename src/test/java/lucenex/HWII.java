@@ -14,13 +14,13 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.WhitespaceTokenizerFactory;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.en.EnglishMinimalStemFilterFactory;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.HyphenatedWordsFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.miscellaneous.TrimFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
+import org.apache.lucene.analysis.pattern.PatternReplaceCharFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.document.Document;
@@ -36,6 +36,7 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.suggest.analyzing.SuggestStopFilterFactory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
@@ -76,20 +77,33 @@ public class HWII {
 
 
 	private void indexDocs(String fileName, Directory directory, Codec codec) throws IOException {
-		Analyzer myAnalyzer = CustomAnalyzer.builder()
+		Analyzer myAnalyzerContent = CustomAnalyzer.builder()	//Analyzer per il contenuto
 				.withTokenizer(WhitespaceTokenizerFactory.class)
 				.addTokenFilter(HyphenatedWordsFilterFactory.class)
 				.addTokenFilter(EnglishPossessiveFilterFactory.class)
 				.addTokenFilter(WordDelimiterGraphFilterFactory.class)
 				.addTokenFilter(LowerCaseFilterFactory.class)
 				.addTokenFilter(EnglishMinimalStemFilterFactory.class)
-				.addTokenFilter(TrimFilterFactory.class)
+				.addTokenFilter(SuggestStopFilterFactory.class)
 				.build();
+		
+		Map<String,String> params=new HashMap<>();
+		params.put("pattern", ".txt");
+		params.put("replacement", " ");
+		
+		Analyzer myAnalyzerTitle = CustomAnalyzer.builder()		//Analyzer per il titolo
+				.addCharFilter(PatternReplaceCharFilterFactory.class, params)
+				.withTokenizer(WhitespaceTokenizerFactory.class)
+				.addTokenFilter(TrimFilterFactory.class)
+				.addTokenFilter(LowerCaseFilterFactory.class)
+				.addTokenFilter(WordDelimiterGraphFilterFactory.class)
+				.build();
+		
 		Map<String, Analyzer> perFieldAnalyzers = new HashMap<>();
-		perFieldAnalyzers.put("contenuto", myAnalyzer);
-		perFieldAnalyzers.put("titolo", new EnglishAnalyzer());
+		perFieldAnalyzers.put("contenuto", myAnalyzerContent);
+		perFieldAnalyzers.put("titolo", myAnalyzerTitle);
 
-		Analyzer analyzer = new PerFieldAnalyzerWrapper(myAnalyzer, perFieldAnalyzers);
+		Analyzer analyzer = new PerFieldAnalyzerWrapper(myAnalyzerContent, perFieldAnalyzers);
 		IndexWriterConfig config = new IndexWriterConfig(analyzer);
 		if (codec != null) {
 			config.setCodec(codec);
