@@ -23,6 +23,7 @@ import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilterFactory;
 import org.apache.lucene.analysis.pattern.PatternReplaceCharFilterFactory;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.codecs.Codec;
+import org.apache.lucene.codecs.simpletext.SimpleTextCodec;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -83,7 +84,6 @@ public class HWII {
 				.addTokenFilter(EnglishPossessiveFilterFactory.class)
 				.addTokenFilter(WordDelimiterGraphFilterFactory.class)
 				.addTokenFilter(LowerCaseFilterFactory.class)
-				.addTokenFilter(EnglishMinimalStemFilterFactory.class)
 				.addTokenFilter(SuggestStopFilterFactory.class)
 				.build();
 		
@@ -138,7 +138,7 @@ public class HWII {
 		Path path = Paths.get("target/index");
 
 		try (Directory directory = FSDirectory.open(path)) {
-			indexDocs(docPath, directory, null);
+			indexDocs(docPath, directory, new SimpleTextCodec());
 			Scanner scan = new Scanner(System.in);
 			System.out.println("Eseguire la query su titolo o contenuto?");
 			String campo = scan.next();
